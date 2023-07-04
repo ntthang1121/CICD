@@ -1,0 +1,2 @@
+class Optimal < ApplicationRecord
+end
