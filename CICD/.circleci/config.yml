@@ -29,6 +29,7 @@ commands:
           command: |
             echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
             source $BASH_ENV
+            bundle update --bundler
             gem install bundler
 
 jobs:
@@ -36,10 +37,8 @@ jobs:
     executor: default
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            - sharing-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
-            - sharing-
+      # - restore_cache:
+      #     keys: /home/nguyen.tan.thang/GameServer/CICD/CICD/Gemfile.lock
       - configure_bundler
       - run:
           name: Install bundle
@@ -50,10 +49,10 @@ jobs:
       - run:
           name: Setup DB
           command: bundle exec rails db:create db:schema:load --trace
-      - save_cache:
-          key: sharing-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
-          paths:
-            - vendor/bundle
+      # - save_cache:
+      #     key: /home/nguyen.tan.thang/GameServer/CICD/CICD/Gemfile.lock
+      #     paths:
+      #       - vendor/bundle
       - persist_to_workspace:
           root: ~/
           paths:
