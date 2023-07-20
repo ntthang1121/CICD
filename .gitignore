@@ -8,10 +8,22 @@
 /.bundle
 
 # Ignore the default SQLite database.
+*.rbc
+capybara-*.html
+.browserslistrc
+/.framgia-ci-reports/
+.framgia-ci-result.temp.yml
+/config/database.yml
+/config/credentials.yml.enc
+/test/
+.rspec
 /db/*.sqlite3
 /db/*.sqlite3-journal
+/db/*.sqlite3-[0-9]*
+/public/system
 
 # Ignore all logfiles and tempfiles.
 /log/*
+/tmp/*
 !/log/.keep
-/tmp
+!/tmp/.keep
