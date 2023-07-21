@@ -2,92 +2,115 @@ version: 2.1
 
 executors:
   default:
-    working_directory: ~/sharing
+    working_directory: ~/Project_Thang/CICD/
     docker:
       - image: circleci/ruby:2.7.1
-        environment:
-          BUNDLE_JOBS: 3
-          BUNDLE_PATH: vendor/bundle
-          BUNDLE_RETRY: 3
-          BUNDLER_VERSION: 2.1.4
-          RAILS_ENV: test
-          DB_HOST: 127.0.0.1
-          DB_USERNAME: root
-          DB_PASSWORD: ''
-      - image: circleci/mysql:8.0.18
-        command: [--default-authentication-plugin=mysql_native_password]
-        environment:
-          MYSQL_ALLOW_EMPTY_PASSWORD: 'true'
-          MYSQL_ROOT_HOST: '%'
+      - image: circleci/mysql:5.5.56
 
 # commands:
-#   configure_bundler:
-#     description: Configure bundler
+#   bundle_install:
+#     description: bundle install
 #     steps:
 #       - run:
-#           name: Configure bundler
-#           command: |
-#             echo 'export BUNDLER_VERSION=$(cat Gemfile.lock | tail -1 | tr -d " ")' >> $BASH_ENV
-#             source $BASH_ENV
-#             # bundle update --bundler
-#             # gem install bundler
+#           name: bundle install
+#           command: bundle install
 
 jobs:
+  
   build:
     executor: default
+
+    environment:
+      TERM: xterm-256color
+
     steps:
       - checkout
+
+      - persist_to_workspace:
+          root: ~/
+          paths:
+              - Project_Thang/
+
       - run:
-          name: Verify Bundler version
-          command: bundle --version
-      # - restore_cache:
-      #     keys: /home/nguyen.tan.thang/GameServer/CICD/CICD/Gemfile.lock
-      # - configure_bundler
-      # - run: gem install bundler
-      - run:
-          name: Install bundle
-          command: bundle install
-      # - run:
-      #     name: Wait for DB
-      #     command: dockerize -wait tcp://127.0.0.1:3307 -timeout 1m
-      # - run:
-      #     name: Setup DB
-      #     command: bundle exec rails db:create db:schema:load --trace
-      # - save_cache:
-      #     key: /home/nguyen.tan.thang/GameServer/CICD/CICD/Gemfile.lock
-      #     paths:
-      #       - vendor/bundle
-      # - persist_to_workspace:
-      #     root: ~/
-      #     paths:
-      #       - ./sharing
-  rubocop:
+          name: bundle install
+          command: |
+            bundle check --path=vendor/bundle || bundle install --path vendor/bundle
+
+      - save_cache:
+          key: gems-v1-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+          paths:
+            - vendor/bundle
+
+  test:
     executor: default
+
+    environment:
+      TERM: xterm-256color
+
     steps:
-      # - attach_workspace:
-      #     at: ~/
       - checkout
+
+      - attach_workspace:
+          at: ~/Project_Thang/
+
+      - restore_cache:
+          key: gems-v1-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
+
       - run:
-          name: Verify Bundler version
-          command: bundle --version
-      # - configure_bundler
-      # - run: gem install bundler
-      # - run: bundle config set --local path 'vendor/bundle'
-      - run:
-          name: Install bundle
+          name: bundle install
           command: bundle install
-          # name: Install bundle path vendor/bundle
-          # command: bundle install --path vendor/bundle
-      # - run: bundle exec rails db:drop db:create db:migrate
+
       - run:
           name: Rubocop
           command: bundle exec rubocop
 
+      - run:
+          name: Install Node.js
+          command: |
+            curl -sL https://deb.nodesource.com/setup_20.x | sed "s/exec_cmd 'apt-get update'/exec_cmd 'apt-get --allow-releaseinfo-change update'/" | sudo -E bash -
+            sudo apt-get install -y nodejs
+
+      - run:
+          name: Check MySQL connection
+          command: nc -zv 127.0.0.1 3306
+
+      - run:
+          name: Wait for DB
+          command: dockerize -wait tcp://localhost:3306 -timeout 1m
+
+      - run:
+          name: Database Setup
+          command: |
+            RAILS_ENV=test bundle exec rake db:create
+            RAILS_ENV=test bundle exec rake db:migrate
+
+      - run:
+          name: Rspec
+          command: bundle exec rspec
+
+  deploy:
+    executor: default
+
+    environment:
+      TERM: xterm-256color
+
+    steps:
+      - checkout
+      - run:
+          name: "Deploy"
+          command: echo "hahahah"
+
 workflows:
-  version: 2
-  integration:
+  thangnt:
     jobs:
       - build
-      - rubocop:
+      - test:
           requires:
             - build
+      - wait_approve:
+          type: approval
+          requires:
+            - test
+      - deploy:
+          requires:
+            - wait_approve
