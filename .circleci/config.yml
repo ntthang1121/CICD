@@ -7,13 +7,13 @@ executors:
       - image: circleci/ruby:2.7.1
       - image: circleci/mysql:5.5.56
 
-# commands:
-#   bundle_install:
-#     description: bundle install
-#     steps:
-#       - run:
-#           name: bundle install
-#           command: bundle install
+commands:
+  bundle_install:
+    description: bundle install
+    steps:
+      - run:
+          name: bundle install
+          command: bundle install
 
 jobs:
   
@@ -31,10 +31,7 @@ jobs:
           paths:
               - Project_Thang/
 
-      - run:
-          name: bundle install
-          command: |
-            bundle check --path=vendor/bundle || bundle install --path vendor/bundle
+      - bundle_install
 
       - save_cache:
           key: gems-v1-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
@@ -56,9 +53,7 @@ jobs:
       - restore_cache:
           key: gems-v1-{{ .Branch }}-{{ checksum "Gemfile.lock" }}
 
-      - run:
-          name: bundle install
-          command: bundle install
+      - bundle_install
 
       - run:
           name: Rubocop
@@ -96,10 +91,16 @@ jobs:
 
     steps:
       - checkout
+
+      - bundle_install
+
+      - add_ssh_keys:
+          fingerprints: " 1d:32:3c:1a:25:7b:59:9d:10:45:09:5f:0b:14:1b:cb"
+
       - run:
           name: "Deploy"
-          command: echo "hahahah"
-
+          command: bundle exec cap production deploy
+          
 workflows:
   thangnt:
     jobs:
@@ -109,8 +110,14 @@ workflows:
             - build
       - wait_approve:
           type: approval
+          # approval:
+          #   expiration:
+          #     minutes: 1
           requires:
             - test
       - deploy:
           requires:
             - wait_approve
+          # filters:
+          #   branches:
+          #     only: setup_capistano
