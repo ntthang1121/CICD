@@ -108,6 +108,7 @@ GEM
     method_source (1.0.0)
     mini_mime (1.1.5)
     minitest (5.19.0)
+    mysql2 (0.5.5)
     net-imap (0.3.7)
       date
       net-protocol
@@ -260,6 +261,7 @@ DEPENDENCIES
   factory_bot_rails
   jbuilder (~> 2.0)
   jquery-rails
+  mysql2
   rails (= 5.0.7.2)
   rspec-rails (~> 4.0.1)
   rubocop (~> 0.74.0)

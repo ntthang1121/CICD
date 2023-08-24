@@ -6,12 +6,12 @@ set :application, "CICD"
 set :repo_url, "git@github.com:ntthang1121/CICD.git"
 
 # Default branch is :master
-# ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
-set :branch, :setup_capistano
+ask :branch, `git rev-parse --abbrev-ref HEAD`.chomp
+# set :branch, :setup_capistano
 set :user, 'deploy'
 
 # Default deploy_to directory is /var/www/my_app_name
-set :deploy_to, "/var/www/CICD/current"
+set :deploy_to, "/var/www/CICD"
 
 # Default value for :format is :airbrussh.
 # set :format, :airbrussh
@@ -38,12 +38,12 @@ set :use_sudo, false
 # set :local_user, -> { `git config user.name`.chomp }
 
 # Default value for keep_releases is 5
-# set :keep_releases, 5
+set :keep_releases, 5
 
 # Uncomment the following to require manually verifying the host key before first deploy.
 # set :ssh_options, verify_host_key: :secure
 
-set :rvm1_map_bins, %w(rake gem bundle ruby)
+# set :rvm1_map_bins, %w(rake gem bundle ruby)
 
 # namespace :deploy do
 #   desc 'Restart Puma'
@@ -67,9 +67,29 @@ set :puma_conf, -> {"#{shared_path}/puma.rb"}
 set :puma_access_log, -> {"#{shared_path}/log/puma_access.log"}
 set :puma_error_log, -> {"#{shared_path}/log/puma_error.log"}
 set :puma_role, :app
-set :puma_env, fetch(:rack_env, fetch(:rails_env, "staging"))
+set :puma_env, fetch(:rack_env, fetch(:rails_env, "production"))
 set :puma_threads, [0, 8]
 set :puma_workers, 0
 set :puma_worker_timeout, nil
 set :puma_init_active_record, true
 set :puma_preload_app, false
+
+# namespace :git do
+#   desc 'Check if local git is in sync with remote'
+#   task :check do
+#     on roles(:app) do
+#       unless test(`[ -f #{repo_path}/HEAD ]`)
+#         warn 'No repository has been cloned yet, please run `cap production deploy:initial` first.'
+#         exit
+#       end
+
+#       # Your custom logic here
+#       within repo_path do
+#         if test(`[ $(git rev-parse HEAD) != $(git rev-parse origin/#{fetch(:branch)}) ]`)
+#           warn "HEAD is not the same as origin/#{fetch(:branch)}"
+#           exit
+#         end
+#       end
+#     end
+#   end
+# end
