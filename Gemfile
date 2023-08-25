@@ -7,7 +7,7 @@ gem "rails", "5.0.7.2"
 gem "sqlite3"
 # Use SCSS for stylesheets
 # gem 'mini_racer', '~> 0.8.0'
-gem "mysql2"
+#gem "mysql2"
 gem "sass-rails", "~> 5.0"
 # Use Uglifier as compressor for JavaScript assets
 gem "uglifier", ">= 1.3.0"
@@ -36,16 +36,27 @@ gem "sdoc", ">= 0.4.0", group: :doc
 
 group :development, :test do
   gem "byebug"
+  gem "capistrano"
+  gem "capistrano3-puma"
+  gem "capistrano-bundler"
+  gem "capistrano-passenger", ">= 0.1.1"
   gem "factory_bot_rails"
   gem "rspec-rails", "~> 4.0.1"
   gem "rubocop", "~> 0.74.0", require: false
   gem "rubocop-checkstyle_formatter", require: false
   gem "rubocop-rails", "~> 2.3.2", require: false
+
+  # Remove the following if your app does not use Rails
+  gem "capistrano-rails"
+
+  # Remove the following if your server does not use RVM
+  gem "capistrano-rvm"
 end
 
 group :development do
   # Access an IRB console on exception pages or by using <%= console %> in views
   gem "web-console", "~> 2.0"
-
+  gem "capistrano3-puma"
+  
   gem "spring"
 end
